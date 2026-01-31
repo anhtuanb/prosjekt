@@ -1,7 +1,7 @@
 // userdata.js - Fil for å lagre brukerinformasjon
 
-// Eksporter brukerdata som et objekt som kan importeres
-export const userDatabase = {
+// Lag en global brukerdatabase
+const userDatabase = {
     'admin': { 
         password: 'admin123', 
         email: 'admin@example.com', 
@@ -30,23 +30,22 @@ export const userDatabase = {
         password: 'ole123', 
         email: 'ole@example.com', 
         role: 'user',
-        fullName: 'Per Hansen'
+        fullName: 'Ole Olsen'
     }    
 };
 
 // Hjelpefunksjoner for å håndtere brukerdata
-export function getUser(username) {
+function getUser(username) {
     return userDatabase[username];
 }
 
-export function addUser(username, userData) {
+function addUser(username, userData) {
     userDatabase[username] = userData;
-    // Lagre i localStorage for persistens
     saveToLocalStorage();
     return true;
 }
 
-export function updateUser(username, userData) {
+function updateUser(username, userData) {
     if (userDatabase[username]) {
         userDatabase[username] = { ...userDatabase[username], ...userData };
         saveToLocalStorage();
@@ -55,7 +54,7 @@ export function updateUser(username, userData) {
     return false;
 }
 
-export function deleteUser(username) {
+function deleteUser(username) {
     if (userDatabase[username] && username !== 'admin') {
         delete userDatabase[username];
         saveToLocalStorage();
@@ -64,31 +63,45 @@ export function deleteUser(username) {
     return false;
 }
 
-export function getAllUsers() {
+function getAllUsers() {
     return { ...userDatabase };
 }
 
-export function usernameExists(username) {
+function usernameExists(username) {
     return !!userDatabase[username];
 }
 
-export function emailExists(email) {
+function emailExists(email) {
     return Object.values(userDatabase).some(user => user.email === email);
 }
 
 // Lagre til localStorage
 function saveToLocalStorage() {
-    localStorage.setItem('demoUsers', JSON.stringify(userDatabase));
+    localStorage.setItem('userDatabase', JSON.stringify(userDatabase));
 }
 
 // Last fra localStorage ved oppstart
-export function loadFromLocalStorage() {
-    const storedUsers = localStorage.getItem('demoUsers');
+function loadFromLocalStorage() {
+    const storedUsers = localStorage.getItem('userDatabase');
     if (storedUsers) {
-        const parsedUsers = JSON.parse(storedUsers);
-        // Legg til nye brukere fra localStorage (overskriv ikke defaults)
-        Object.keys(parsedUsers).forEach(username => {
-            userDatabase[username] = parsedUsers[username];
-        });
+        try {
+            const parsedUsers = JSON.parse(storedUsers);
+            Object.keys(parsedUsers).forEach(username => {
+                userDatabase[username] = parsedUsers[username];
+            });
+        } catch (error) {
+            console.error('Feil ved lasting av brukere fra localStorage:', error);
+        }
     }
 }
+
+// Last inn brukere ved oppstart
+loadFromLocalStorage();
+
+// Gjør funksjonene tilgjengelige globalt
+window.userDatabase = userDatabase;
+window.getUser = getUser;
+window.addUser = addUser;
+window.usernameExists = usernameExists;
+window.emailExists = emailExists;
+window.loadFromLocalStorage = loadFromLocalStorage;

@@ -1,13 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script type="module" src="bruker.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login System - All in One</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Samme CSS som før, behold alt dette... */
         /* Reset and Base Styles */
         * {
             margin: 0;
@@ -751,8 +750,7 @@
         <div class="welcome">
             <h1>Velkommen til LeseKoden</h1>
             <p>Du har vellykket logget inn</p>
-			<a href="ToBokstavelseOrd1.html">Start To Bokstavelse Ord 1</a>
-
+            <a href="ToBokstavlesOrd1.html">Om oss</a>
         </div>
         
         <div class="user-info">
@@ -779,12 +777,10 @@
         </button>
     </div>
 
+    <!-- Include the user database script -->
+    <script src="bruker.js"></script>
+    
     <script>
-        // User data storage (in a real app, this would be on the server)
-        let demoUsers = {
-
-        };
-
         // Session management
         let currentUser = null;
         let sessionStartTime = null;
@@ -807,8 +803,6 @@
         const sessionTimerDisplay = document.getElementById('sessionTimer');
         const forgotPassword = document.getElementById('forgotPassword');
         const registerLink = document.getElementById('registerLink');
-        const googleLogin = document.getElementById('googleLogin');
-        const githubLogin = document.getElementById('githubLogin');
         const rememberMe = document.getElementById('rememberMe');
         
         // Registration elements
@@ -827,9 +821,6 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            // Load users from localStorage
-            loadUsersFromStorage();
-            
             // Check if user is remembered
             const rememberedUser = localStorage.getItem('rememberedUser');
             if (rememberedUser) {
@@ -945,7 +936,8 @@
                 return false;
             }
             
-            if (demoUsers[username]) {
+            // Use the function from bruker.js
+            if (window.usernameExists(username)) {
                 regUsernameError.textContent = 'Brukernavnet er allerede i bruk';
                 return false;
             }
@@ -968,12 +960,10 @@
                 return false;
             }
             
-            // Check if email is already in use
-            for (const user in demoUsers) {
-                if (demoUsers[user].email === email) {
-                    regEmailError.textContent = 'Denne e-postadressen er allerede registrert';
-                    return false;
-                }
+            // Use the function from bruker.js
+            if (window.emailExists(email)) {
+                regEmailError.textContent = 'Denne e-postadressen er allerede registrert';
+                return false;
             }
             
             return true;
@@ -1035,13 +1025,16 @@
                 
                 // Simulate API call delay
                 setTimeout(() => {
+                    // Use the function from bruker.js to get user
+                    const user = window.getUser(username);
+                    
                     // Check credentials
-                    if (demoUsers[username] && demoUsers[username].password === password) {
+                    if (user && user.password === password) {
                         const userData = {
                             username: username,
-                            email: demoUsers[username].email,
-                            role: demoUsers[username].role,
-                            fullName: demoUsers[username].fullName || username
+                            email: user.email,
+                            role: user.role,
+                            fullName: user.fullName || username
                         };
                         
                         // Save to session
@@ -1088,8 +1081,8 @@
                 
                 // Simulate API call delay
                 setTimeout(() => {
-                    // Create new user
-                    demoUsers[username] = {
+                    // Create new user data
+                    const newUserData = {
                         password: password,
                         email: email,
                         role: 'user',
@@ -1097,22 +1090,27 @@
                         createdAt: new Date().toISOString()
                     };
                     
-                    // Save to localStorage
-                    saveUsersToStorage();
+                    // Use the function from bruker.js to add user
+                    const success = window.addUser(username, newUserData);
                     
-                    // Reset form
-                    registerForm.reset();
-                    
-                    // Close modal
-                    registrationModal.classList.remove('show');
-                    
-                    showLoading(false);
-                    
-                    showNotification('Bruker registrert vellykket! Du kan nå logge inn.', 'success');
-                    
-                    // Auto-fill login form
-                    usernameInput.value = username;
-                    usernameInput.focus();
+                    if (success) {
+                        // Reset form
+                        registerForm.reset();
+                        
+                        // Close modal
+                        registrationModal.classList.remove('show');
+                        
+                        showLoading(false);
+                        
+                        showNotification('Bruker registrert vellykket! Du kan nå logge inn.', 'success');
+                        
+                        // Auto-fill login form
+                        usernameInput.value = username;
+                        usernameInput.focus();
+                    } else {
+                        showNotification('Kunne ikke registrere bruker. Prøv igjen.', 'error');
+                        showLoading(false);
+                    }
                 }, 1500);
             }
         });
@@ -1144,21 +1142,6 @@
             regEmailError.textContent = '';
             regPasswordError.textContent = '';
             regConfirmPasswordError.textContent = '';
-        }
-
-        // Save users to localStorage
-        function saveUsersToStorage() {
-            localStorage.setItem('demoUsers', JSON.stringify(demoUsers));
-        }
-
-        // Load users from localStorage
-        function loadUsersFromStorage() {
-            const storedUsers = localStorage.getItem('demoUsers');
-            if (storedUsers) {
-                const parsedUsers = JSON.parse(storedUsers);
-                // Merge with default demo users (don't overwrite defaults)
-                demoUsers = { ...demoUsers, ...parsedUsers };
-            }
         }
 
         // Dashboard functions
@@ -1198,20 +1181,6 @@
             sessionTimerDisplay.textContent = `${minutes}:${seconds}`;
         }
 
-        function showFeature(feature) {
-            const features = {
-                profile: 'Profilredigering - Kommer snart!',
-                settings: 'Innstillinger - Kommer snart!',
-                analytics: 'Statistikk - Kommer snart!',
-                messages: 'Meldinger - Kommer snart!',
-                documents: 'Dokumenter - Kommer snart!',
-                billing: 'Fakturering - Kommer snart!',
-                support: 'Kundestøtte - Kommer snart!'
-            };
-            
-            showNotification(features[feature], 'info');
-        }
-
         function logout() {
             if (confirm('Er du sikker på at du vil logge ut?')) {
                 // Clear session
@@ -1246,14 +1215,6 @@
             }, 100);
         });
 
-        googleLogin.addEventListener('click', function() {
-            showNotification('Google pålogging kommer snart!', 'info');
-        });
-
-        githubLogin.addEventListener('click', function() {
-            showNotification('GitHub pålogging kommer snart!', 'info');
-        });
-
         // Utility functions
         function showNotification(message, type = 'info') {
             notification.textContent = message;
@@ -1276,14 +1237,12 @@
             }
         }
 
-
-
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             // Ctrl + / to show demo credentials
             if (e.ctrlKey && e.key === '/') {
                 e.preventDefault();
-                showNotification('Demo-brukere: admin/admin123, user/user123, demo/demo123, nr1/per123', 'info');
+                showNotification('Demo-brukere: admin/admin123, user/user123, demo/demo123, per/per123, ole/ole123', 'info');
             }
             
             // Escape to close notifications or registration modal

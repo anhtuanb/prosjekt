@@ -26,9 +26,9 @@ const userDatabase = {
         role: 'user',
         fullName: 'Per Hansen'
     },
-    'ole': { 
-        password: 'ole123', 
-        email: 'ole@example.com', 
+    'ada': { 
+        password: 'ada123', 
+        email: 'ada@example.com', 
         role: 'user',
         fullName: 'Ole Olsen'
     }    

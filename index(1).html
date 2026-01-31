@@ -1,8 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script type="module" src="bruker.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login System - All in One</title>
@@ -782,7 +780,30 @@
     <script>
         // User data storage (in a real app, this would be on the server)
         let demoUsers = {
-
+            'admin': { 
+                password: 'admin123', 
+                email: 'admin@example.com', 
+                role: 'admin',
+                fullName: 'Administrator'
+            },
+            'user': { 
+                password: 'user123', 
+                email: 'user@example.com', 
+                role: 'user',
+                fullName: 'Test User'
+            },
+            'demo': { 
+                password: 'demo123', 
+                email: 'demo@example.com', 
+                role: 'user',
+                fullName: 'Demo User'
+            },
+            'per': { 
+                password: 'per123', 
+                email: 'demo@example.com', 
+                role: 'user',
+                fullName: 'Demo User'
+            }
         };
 
         // Session management

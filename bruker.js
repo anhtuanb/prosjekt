@@ -31,7 +31,13 @@ const userDatabase = {
         email: 'ada@example.com', 
         role: 'user',
         fullName: 'Ole Olsen'
-    }    
+    },
+    'willy': { 
+        password: 'willy123', 
+        email: 'willy@example.com', 
+        role: 'user',
+        fullName: 'willy Olsen'
+    }      
 };
 
 // Hjelpefunksjoner for å håndtere brukerdata

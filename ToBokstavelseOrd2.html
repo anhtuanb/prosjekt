@@ -1,6 +1,16 @@
 
 
 <!DOCTYPE html>
+
+    <div id="nav-container"></div>
+    <script>
+        fetch("MenuBar.html")
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById("nav-container").innerHTML = html;
+        });
+    </script>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">

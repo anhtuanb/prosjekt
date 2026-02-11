@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+
+
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiv bok · sidesprang & fast tekst</title>
+    <style>
+        /* FULLSTENDIG UTEN SKROLLING – ABSOLUTT INGEN RULLEFELT */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;      /* 🔒 NULL SKROLLING – LÅST */
+            background: #5d4a37;   /* mørkebrun, som gammelt skinn */
+            font-family: 'Georgia', 'Times New Roman', serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* BOK-RAMME – ser ut som en ordentlig bok */
+        .bok {
+            width: 1000px;
+            height: 650px;
+            max-width: 96vw;
+            max-height: 94vh;
+            background: #fcf7ef;          /* old school papir */
+            border-radius: 10px 25px 25px 10px;
+            box-shadow: 
+                0 25px 40px -12px rgba(0,0,0,0.7),
+                0 0 0 2px #6b4c3b,
+                10px 0 18px -8px rgba(0,0,0,0.5) inset;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 30px;
+            position: relative;
+        }
+
+        /* Bokhode – tittel + sidetall */
+        .bok-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 3px solid #b29b80;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .bok-tittel {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #3c2a1c;
+            text-shadow: 2px 2px 0 rgba(200, 170, 140, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .bok-sidetall {
+            font-size: 0.8rem;
+            background: #ddcebc;
+            padding: 6px 22px;
+            border-radius: 40px;
+            color: #34261b;
+            font-weight: 600;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* --- INNHOLD – FAST STØRRELSE, INGEN SKROLLING MULIG --- */
+        .bok-innhold {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 28px;
+            min-height: 0;      /* flex override – viktig */
+            height: 440px;      /* fast høyde – ingen vekst som skaper scroll */
+        }
+
+        /* VENSTRE SIDE – BILDE */
+        .bilde-side {
+            flex: 1 1 48%;
+            background: #e7dfd1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 0 1px #c8b09a, inset 0 0 30px #e6d8ca;
+        }
+
+        .bilde-ramme {
+            width: 100%;
+            height: 100%;
+            background: #fffcf6;
+            border: 2px solid #b69472;
+            box-shadow: 0 10px 18px -6px rgba(70, 40, 20, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;   /* beskjærer bildet – aldri scroll */
+        }
+
+        .bilde-ramme img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;  /* fyller rammen perfekt */
+            display: block;
+        }
+
+        /* HØYRE SIDE – TEKST, FAST STØRRELSE UTEN SCROLL */
+        .tekst-side {
+            flex: 1 1 48%;
+            background: #fffaf2;
+            padding: 22px 22px 18px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 0 1px #e0cfbc, inset 0 0 20px rgba(170, 130, 80, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: visible;  /* 🚫 INGEN SCROLL – tekst må passes inn */
+            height: 100%;       /* låst høyde */
+        }
+
+        /* TEKST-TITTEL – kompakt og kraftig */
+        .tekst-tittel {
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #4a3422;
+            border-left: 12px solid #b3724a;
+            padding-left: 16px;
+            margin-bottom: 14px;
+            line-height: 1.2;
+            white-space: nowrap;      /* unngår at tittel brekker over flere linjer unødvendig */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 🔥 TEKSTOMRÅDE – ABSOLUTT FAST, INGEN SKROLLING 🔥 */
+        .tekst-brodtekst {
+            font-size: 1.3rem;         /* FAST liten str – ingen scroll */
+            line-height: 1.55;
+            color: #2d231b;
+            overflow: visible;       /* SKROLLING FJERNET */
+            flex: 1;
+            max-height: 280px;       /* sikrer at teksten aldri stikker ut */
+            word-wrap: break-word;
+            overflow-y: visible;     /* NEI til scrollbar */
+            display: block;
+        }
+
+        /* sørg for at paragrafer ikke skaper overløp */
+        .tekst-brodtekst p {
+            margin-bottom: 1.7rem;
+            font-size: 1.20rem;      /* kompakt men lesbart */
+        }
+
+        /* ekstra sikring: fjern eventuell scroll fra alle indre elementer */
+        .tekst-brodtekst * {
+            max-height: 100%;
+        }
+
+        /* ---- DIREKTE SIDENAVIGASJON + TALLKNATTER ---- */
+        .navigasjon {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 2px solid #cfbaa6;
+            gap: 8px;
+        }
+
+        .knapp {
+            background: #a57858;
+            border: none;
+            padding: 12px 18px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fffef7;
+            border-radius: 40px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 6px 0 #553b2b, 0 5px 14px rgba(0,0,0,0.25);
+            border: 1px solid #ebd5ba;
+            text-transform: uppercase;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .knapp:hover:not(:disabled) {
+            background: #8d6242;
+            box-shadow: 0 4px 0 #3f2e22, 0 6px 14px rgba(0,0,0,0.25);
+            transform: translateY(2px);
+        }
+
+        .knapp:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #3f2e22, 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .knapp:disabled {
+            opacity: 0.45;
+            box-shadow: 0 4px 0 #4e4036;
+            pointer-events: none;
+            background: #928170;
+        }
+
+        /* --- DIREKTE SIDEVELGER – tallknatter 1–5 --- */
+        .side-velger {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            align-items: center;
+            background: #eaded2;
+            padding: 6px 16px;
+            border-radius: 60px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .side-tall {
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3ede5;
+            border: 2px solid #8e6f58;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #412f21;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 3px 0 #6f5543;
+        }
+
+        .side-tall.aktiv {
+            background: #b47d56;
+            border-color: #513b2b;
+            color: white;
+            box-shadow: 0 0 0 3px #efd7ba, 0 3px 0 #4f3629;
+            transform: scale(1.05);
+        }
+
+        .side-tall:hover:not(.aktiv) {
+            background: #dac1aa;
+            border-color: #7b5d48;
+            transform: scale(1.05);
+        }
+
+        .indikator-bokstaver {
+            font-size: 1.2rem;
+            margin-left: 8px;
+            color: #5a463a;
+            font-weight: 600;
+        }
+
+        /* ekstra dekor – lesebånd */
+        .bok::after {
+            content: '';
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            width: 130px;
+            height: 8px;
+            background: #b78d67;
+            opacity: 0.2;
+            border-radius: 20px;
+            transform: rotate(6deg);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="bok">
+
+        <!-- topptekst -->
+            <div id="nav-container"></div>
+        <script>
+            fetch("MenuBar.html")
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("nav-container").innerHTML = html;
+            });
+        </script>
+
+        <div class="bok-header">
+            <span class="bok-tittel">📚 BOKEN OM STEDER</span>
+            <span class="bok-sidetall" id="sideViser">side 1 / 5</span>
+        </div>
+
+        <!-- dynamisk oppslag (bilde + tekst) -->
+        <div class="bok-innhold" id="bokOppslag"></div>
+
+        <!-- 🔽 DIREKTE NAVIGASJON – neste/forrige OG tallknapper 🔽 -->
+        <div class="navigasjon">
+            <button class="knapp" id="forrigeKnapp" aria-label="Forrige side">◄ FORRIGE</button>
+            
+            <!-- SIDEVELGER – hopp direkte til side 1–5 -->
+            <div class="side-velger" id="sideVelgerContainer">
+                <!-- her genereres tallknapper 1–5 via js -->
+            </div>
+            
+            <button class="knapp" id="nesteKnapp" aria-label="Neste side">NESTE ►</button>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            "use strict";
+
+            // ----------------------------------------------
+            // BOKAS SIDER – med tekst tilpasset FAST visning (ingen scroll)
+            // ALL TEKST er kortet ned, kompakt, passer perfekt i boksen
+            // ----------------------------------------------
+            const sider = [
+                {
+                    tittel: "Fyrtårnet",
+                    bilde: "https://picsum.photos/600/450?random=101&grayscale",
+                    bildeAlt: "Steinfyrtårn i stormvær",
+                    brodtekst: "<p>Fyrtårnet på Skagenodden, reist 1892. Martha tente parafinlamper her i 40 år. Nå automatisk, men historiene lever. Loggboken ligger fortsatt i tårnet med kryptiske notater fra 1920. Havet hvisker.</p><p>«Til alle som farer vill: Vi lyser så lenge vi kan.»</p>",
+                    emoji: "⚓"
+                },
+                {
+                    tittel: "Trollskogen",
+                    bilde: "https://picsum.photos/600/451?random=202&grayscale&seed=woods",
+                    bildeAlt: "Gammel granskog med tåke",
+                    brodtekst: "<p>Ingen går lenger inn enn til eika. Siden 1978, da tvillingene forsvant. Eller var det bare sagn? Moseteppet demper skritt, og lyset siler som gull. Innerst ligger en steinring. Ingen vet hvem som la den.</p><p>Blåbærlyngen er størst akkurat der.</p>",
+                    emoji: "🌲"
+                },
+                {
+                    tittel: "Kafé Vienna",
+                    bilde: "https://picsum.photos/600/452?random=330&grayscale&seed=vienna",
+                    bildeAlt: "Tom kafé med lenestoler",
+                    brodtekst: "<p>Sist kunde gikk i 1999. Veggklokken tikker fortsatt. Disken i valnøtt er blank av ermer. Eierens datter kommer hvert år. Hun tørker støv av espressoapparatet. Minner varmer best.</p><p>Duften av kaffe sitter i veggene.</p>",
+                    emoji: "☕"
+                },
+                {
+                    tittel: "Sjømannskirken",
+                    bilde: "https://picsum.photos/600/453?random=404&grayscale&seed=churchsea",
+                    bildeAlt: "Liten hvit kirke ved sjøen",
+                    brodtekst: "<p>Langt hjemmefra, i frenmed havn. Sjøfolk tente lys, ba for de ventende. I dag henger vimpler i taket – båtnavn på rad. Utstoppede måker, modellskip og en slitt bibel.</p><p>«Knut, 1957 – kommer igjen.»</p>",
+                    emoji: "⛵"
+                },
+                {
+                    tittel: "Planetariet",
+                    bilde: "https://picsum.photos/600/454?random=505&grayscale&seed=stars",
+                    bildeAlt: "Stjernekuppel med projektor",
+                    brodtekst: "<p>Siste visning: Saturns ringer. Nå står setene tomme, men projektoren kan startes med en gammel bryter. Hver natt hvisker assistenten: «Orion, bare for oss».</p><p>Universet folder seg ut igjen.</p>",
+                    emoji: "🔭"
+                },
+                {
+                    tittel: "Tuller Stein",
+                    bilde: "https://picsum.photos/600/454?random=505&grayscale&seed=stars",
+                    bildeAlt: "Stjernekuppel med projektor",
+                    brodtekst: "<p>Dette er fint tekst for barn !</p>",
+                    emoji: "🔭"
+                }
+            ];
+
+            // --- STATE ---
+            let currentIndex = 0;
+            const total = sider.length;
+
+            // --- DOM-REFERANSER ---
+            const bokOppslagEl = document.getElementById('bokOppslag');
+            const sideViserEl = document.getElementById('sideViser');
+            const forrigeKnapp = document.getElementById('forrigeKnapp');
+            const nesteKnapp = document.getElementById('nesteKnapp');
+            const sideVelgerContainer = document.getElementById('sideVelgerContainer');
+
+            // --- RENDERING: SIDEINNHOLD + OPPDATER NAVIGASJON ---
+            function renderSide(index) {
+                if (index < 0) index = 0;
+                if (index >= total) index = total - 1;
+                currentIndex = index;
+
+                const data = sider[currentIndex];
+
+                // bygg bilde/tekst – med FAST høyde, garantert ingen scroll
+                const html = `
+                    <div class="bilde-side">
+                        <div class="bilde-ramme">
+                            <img src="${data.bilde}" alt="${data.bildeAlt}" loading="eager">
+                        </div>
+                    </div>
+                    <div class="tekst-side">
+                        <div class="tekst-tittel">
+                            ${data.emoji} ${data.tittel}
+                        </div>
+                        <div class="tekst-brodtekst">
+                            ${data.brodtekst}
+                        </div>
+                        <div class="caption" style="font-size:0.75rem; margin-top:6px; text-align:right; color:#6b5543;">
+                            — side ${currentIndex + 1}
+                        </div>
+                    </div>
+                `;
+
+                bokOppslagEl.innerHTML = html;
+
+                // oppdater sidetall i header
+                sideViserEl.textContent = `side ${currentIndex + 1} / ${total}`;
+
+                // oppdater aktive tilstand på tallknapper
+                oppdaterAktivTallknapp(currentIndex);
+
+                // disable forrige/neste ved ender
+                forrigeKnapp.disabled = (currentIndex === 0);
+                nesteKnapp.disabled = (currentIndex === total - 1);
+            }
+
+            // --- generer tallknapper 1..5 (kun én gang) ---
+            function byggSideVelger() {
+                let knapperHtml = '';
+                for (let i = 0; i < total; i++) {
+                    const sidetall = i + 1;
+                    knapperHtml += `<div class="side-tall" data-sideindex="${i}">${sidetall}</div>`;
+                }
+                sideVelgerContainer.innerHTML = knapperHtml;
+
+                // legg på klikk-event for hver knapp – DIREKTE TIL SIDE
+                const tallKnapper = document.querySelectorAll('.side-tall');
+                tallKnapper.forEach(knapp => {
+                    knapp.addEventListener('click', function(e) {
+                        const idx = parseInt(this.dataset.sideindex, 10);
+                        if (!isNaN(idx) && idx >= 0 && idx < total) {
+                            renderSide(idx);
+                        }
+                    });
+                });
+            }
+
+            // --- marker aktiv side i tallraden ---
+            function oppdaterAktivTallknapp(aktivIndex) {
+                const alleKnapper = document.querySelectorAll('.side-tall');
+                alleKnapper.forEach((knapp, idx) => {
+                    if (idx === aktivIndex) {
+                        knapp.classList.add('aktiv');
+                    } else {
+                        knapp.classList.remove('aktiv');
+                    }
+                });
+            }
+
+            // --- navigasjonsfunksjoner ---
+            function forrigeSide() {
+                if (currentIndex > 0) renderSide(currentIndex - 1);
+            }
+
+            function nesteSide() {
+                if (currentIndex < total - 1) renderSide(currentIndex + 1);
+            }
+
+            // --- EVENTS ---
+            forrigeKnapp.addEventListener('click', forrigeSide);
+            nesteKnapp.addEventListener('click', nesteSide);
+
+            // tastaturstøtte (fortsatt INGEN scrolling)
+            window.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    forrigeSide();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    nesteSide();
+                } else if (e.key === 'PageUp') {
+                    e.preventDefault();
+                    forrigeSide();
+                } else if (e.key === 'PageDown') {
+                    e.preventDefault();
+                    nesteSide();
+                } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    renderSide(0);
+                } else if (e.key === 'End') {
+                    e.preventDefault();
+                    renderSide(total - 1);
+                } else {
+                    // blokker alle scrolling-taster (mellomrom, piltast opp/ned)
+                    const scrollKeys = [' ', 'Space', 'ArrowUp', 'ArrowDown'];
+                    if (scrollKeys.includes(e.key)) {
+                        e.preventDefault();
+                    }
+                }
+            });
+
+            // totalt blokkering av hjul og touch-rulling
+            window.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+            window.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+            window.addEventListener('dragstart', e => e.preventDefault());
+
+            // --- INIT ---
+            byggSideVelger();      // lager tallknappene 1-5
+            renderSide(0);        // start på side 1
+
+        })();
+    </script>
+</body>
+</html>
